@@ -1,12 +1,26 @@
 # MAGMA: A Multi-Graph based Agentic Memory Architecture
 
-An advanced multi-graph memory system for Large Language Model (LLM) agents, implementing temporal, semantic, and causal relationships for enhanced question-answering capabilities.
+**A principled, multi-graph memory system for long-horizon agentic reasoning.**
 
-## Overview
+<p align="center">
+  <a href="https://arxiv.org/abs/2601.03236">
+    <img src="https://img.shields.io/badge/Arxiv-paper-red" alt="MAGMA"
+  </a>
+</p>
 
-MAGMA (Multi-Graph based Agentic Memory Architecture) is a sophisticated memory system designed for long-term conversation memory and multi-hop reasoning. It creates interconnected event nodes linked by temporal, semantic, and causal relationships, enabling intelligent question answering across extended dialogues.
+<h5 align="center"> 🎉 If you are interested, please star ⭐ on GitHub for the latest update.</h5>
 
-## Installation
+##  🔥 Research Highlights
+- Read the full paper: <a href="https://arxiv.org/abs/2601.03236" target="_blank">https://arxiv.org/abs/2601.03236</a>
+
+
+## 📖 Overview
+
+**MAGMA** (Multi-Graph based Agentic Memory Architecture) is a sophisticated memory system designed for long-term conversation memory and multi-hop reasoning. It creates interconnected event nodes linked by temporal, semantic, and causal relationships, enabling intelligent question answering across extended dialogues.
+
+
+
+## 🛠️ Installation
 
 ### Prerequisites
 
@@ -17,8 +31,8 @@ MAGMA (Multi-Graph based Agentic Memory Architecture) is a sophisticated memory 
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
-cd [repository-name]
+git clone https://github.com/FredJiang0324/MAMGA.git
+cd MAMGA
 ```
 
 2. Create and activate a virtual environment:
@@ -185,4 +199,29 @@ MIT License - see LICENSE file for details.
 
 ## Note
 
-This repository contains the implementation for anonymous ACL submission. Additional documentation and citation information will be provided after the review process.
+Have ideas or suggestions? Please feel free to submit issues or pull requests! 🚀
+
+<span id='doc'/>
+
+## 📖 Documentation
+
+A more detailed documentation is coming soon 🚀, and we will update in the Github page.
+
+<span id='cite'/>
+
+## 📣 Citation
+**If you find this project useful, please consider citing our paper:**
+
+```bibtex
+@misc{jiang2026magmamultigraphbasedagentic,
+      title={MAGMA: A Multi-Graph based Agentic Memory Architecture for AI Agents}, 
+      author={Dongming Jiang and Yi Li and Guanpeng Li and Bingzhe Li},
+      year={2026},
+      eprint={2601.03236},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2601.03236}, 
+}
+```
+
+
