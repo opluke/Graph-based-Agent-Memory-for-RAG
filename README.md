@@ -1,26 +1,4 @@
-# MAGMA: A Multi-Graph based Agentic Memory Architecture
-
-**A principled, multi-graph memory system for long-horizon agentic reasoning.**
-
-<p align="center">
-  <a href="https://arxiv.org/abs/2601.03236">
-    <img src="https://img.shields.io/badge/arXiv-2601.03236-b31b1b.svg" alt="arXiv">
-  </a>
-  <a href="https://huggingface.co/papers/2601.03236">
-    <img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Paper-yellow" alt="Hugging Face">
-  </a>
-  <a href="https://github.com/FredJiang0324/MAMGA">
-    <img src="https://img.shields.io/github/stars/FredJiang0324/MAMGA?style=social" alt="GitHub Stars">
-  </a>
-  <img src="https://img.shields.io/badge/ACL-2026%20Main-blue" alt="ACL 2026 Main">
-</p>
-
-<h5 align="center"> 🎉 If you are interested, please star ⭐ on GitHub for the latest update.</h5>
-
-## 📢 News
-
-- **[2026/04/07]** MAGMA has been accepted by **ACL 2026** at the main conference! We will update the new version of the paper soon. Stay tuned!
-- **[2026/01/06]** Our paper has been submitted to arXiv! Check it out: [![arXiv](https://img.shields.io/badge/arXiv-2601.03236-b31b1b.svg)](https://arxiv.org/abs/2601.03236)
+# Graph-based Agent Memory for RAG
 
 ##  🔥 Research Highlights
 - Read the full paper: <a href="https://arxiv.org/abs/2601.03236" target="_blank">https://arxiv.org/abs/2601.03236</a>
