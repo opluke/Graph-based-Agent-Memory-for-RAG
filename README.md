@@ -1,9 +1,5 @@
 # Graph-based Agent Memory for RAG
 
-##  🔥 Research Highlights
-- Read the full paper: <a href="https://arxiv.org/abs/2601.03236" target="_blank">https://arxiv.org/abs/2601.03236</a>
-
-
 ## 📖 Overview
 
 **MAGMA** (Multi-Graph based Agentic Memory Architecture) is a sophisticated memory system designed for long-term conversation memory and multi-hop reasoning. It creates interconnected event nodes linked by temporal, semantic, and causal relationships, enabling intelligent question answering across extended dialogues.
