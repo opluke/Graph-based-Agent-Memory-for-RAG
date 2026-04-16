@@ -957,9 +957,11 @@ class TemporalResonanceGraphMemory:
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get system statistics"""
+        total_links = len(self.graph_db.links) if hasattr(self.graph_db, 'links') else 0
         return {
             **self.stats,
             'total_nodes': self.graph_db.size() if hasattr(self.graph_db, 'size') else len(self.graph_db.nodes),
+            'total_links': total_links,
             'total_vectors': self.vector_db.size(),
             'node_types': self._count_node_types(),
             'link_types': self._count_link_types()

@@ -10,6 +10,10 @@ import pickle
 from pathlib import Path
 import time
 
+from utils.cache_setup import configure_repo_cache
+
+configure_repo_cache()
+
 # Optional imports
 try:
     from rank_bm25 import BM25Okapi

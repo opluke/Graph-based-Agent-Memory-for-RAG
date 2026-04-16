@@ -9,6 +9,10 @@ from dataclasses import dataclass
 from pathlib import Path
 import threading
 
+from utils.cache_setup import configure_repo_cache
+
+configure_repo_cache()
+
 # Optional imports - will fallback gracefully if not available
 try:
     from rouge_score import rouge_scorer
@@ -56,6 +60,7 @@ except ImportError:
 if NLTK_AVAILABLE:
     try:
         nltk.download('punkt', quiet=True)
+        nltk.download('punkt_tab', quiet=True)
         nltk.download('wordnet', quiet=True)
     except Exception as e:
         print(f"Error downloading NLTK data: {e}")
@@ -100,8 +105,13 @@ def calculate_bleu_scores(prediction: str, reference: str) -> Dict[str, float]:
     if not NLTK_AVAILABLE:
         return {'bleu': 0.0, 'bleu1': 0.0, 'bleu2': 0.0, 'bleu4': 0.0}
 
-    pred_tokens = nltk.word_tokenize(prediction.lower())
-    ref_tokens = [nltk.word_tokenize(reference.lower())]
+    try:
+        pred_tokens = nltk.word_tokenize(prediction.lower())
+        ref_tokens = [nltk.word_tokenize(reference.lower())]
+    except LookupError:
+        # Newer NLTK releases may require punkt_tab; fall back to simple tokenization
+        pred_tokens = simple_tokenize(prediction.lower())
+        ref_tokens = [simple_tokenize(reference.lower())]
     
     weights_list = [(1, 0, 0, 0), (0.5, 0.5, 0, 0), (0.33, 0.33, 0.33, 0), (0.25, 0.25, 0.25, 0.25)]
     smooth = SmoothingFunction().method1

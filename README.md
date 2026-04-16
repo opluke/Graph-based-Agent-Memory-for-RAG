@@ -159,6 +159,30 @@ python test_fixed_memory.py --cache-dir ./my_cache
 python test_fixed_memory.py --rebuild
 ```
 
+### Graph Visualization
+
+Render a cached `graph.json` as PNG or interactive HTML:
+
+```bash
+python visualize_graph.py --graph ./locomo_trg_cache_gpt_4o_mini/sample0/graph.json
+```
+
+Useful options:
+
+```bash
+# Smaller readable subgraph
+python visualize_graph.py --graph ./locomo_trg_cache_gpt_4o_mini/sample0/graph.json --max-nodes 80
+
+# Focus on one node neighborhood
+python visualize_graph.py --graph ./locomo_trg_cache_gpt_4o_mini/sample0/graph.json --center-node <node_id> --hops 2
+
+# Filter to specific relationship types
+python visualize_graph.py --graph ./locomo_trg_cache_gpt_4o_mini/sample0/graph.json --link-types TEMPORAL,CAUSAL
+
+# Export interactive HTML
+python visualize_graph.py --graph ./locomo_trg_cache_gpt_4o_mini/sample0/graph.json --html-output ./results_gpt_4o_mini/sample0_graph_viz.html
+```
+
 ## Advanced Usage
 
 ### Query Engine Parameters

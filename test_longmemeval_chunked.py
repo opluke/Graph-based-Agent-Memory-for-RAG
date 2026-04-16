@@ -25,8 +25,11 @@ from collections import defaultdict
 from tqdm import tqdm
 import warnings
 
+from utils.cache_setup import configure_repo_cache
+
 warnings.filterwarnings("ignore")
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+configure_repo_cache()
 
 load_dotenv()
 

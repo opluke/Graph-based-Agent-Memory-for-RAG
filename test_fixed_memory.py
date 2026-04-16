@@ -20,8 +20,11 @@ from dotenv import load_dotenv
 from collections import defaultdict
 import warnings
 
+from utils.cache_setup import configure_repo_cache
+
 warnings.filterwarnings("ignore")
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+configure_repo_cache()
 
 load_dotenv()
 
@@ -392,7 +395,8 @@ def main():
 
     print(f"  Categories to test: {sorted(categories_to_test)}")
     category_names = {1: "Multi-hop", 2: "Temporal", 3: "Open-domain", 4: "Single-hop", 5: "Adversarial"}
-    print(f"  Category types: {', '.join([f'{c}:{category_names.get(c, 'Unknown')}' for c in sorted(categories_to_test)])}")
+    category_labels = [f"{c}:{category_names.get(c, 'Unknown')}" for c in sorted(categories_to_test)]
+    print(f"  Category types: {', '.join(category_labels)}")
 
     # Show parallel mode status
     # if args.parallel:
@@ -467,9 +471,9 @@ def main():
         mem_stats = builder.trg.get_statistics()
         print(f"\nMemory Statistics:")
         print(f"  Total nodes: {mem_stats['total_nodes']}")
-        print(f"  Total links: {mem_stats['links_created']}")
+        print(f"  Total links: {mem_stats['total_links']}")
         if mem_stats['total_nodes'] > 0:
-            print(f"  Links per node: {mem_stats['links_created']/mem_stats['total_nodes']:.1f}")
+            print(f"  Links per node: {mem_stats['total_links']/mem_stats['total_nodes']:.1f}")
         print(f"  Node types: {mem_stats['node_types']}")
         print(f"  Link types: {mem_stats['link_types']}")
 
@@ -537,7 +541,7 @@ def main():
         bleu1_scores = [r['metrics']['bleu1'] for r in results if r.get('metrics') and 'bleu1' in r['metrics']]
         avg_bleu1 = sum(bleu1_scores) / len(bleu1_scores) * 100 if bleu1_scores else 0
 
-        llm_scores = [r['llm_judge_score'] for r in results if r.get('llm_judge_score', 0) >= 0]
+        llm_scores = [r.get('llm_judge_score', -1.0) for r in results if r.get('llm_judge_score', -1.0) >= 0]
         avg_llm_score = sum(llm_scores) / len(llm_scores) * 100 if llm_scores else 0
 
         # Calculate scores WITHOUT Category 5
@@ -547,7 +551,7 @@ def main():
             correct_no_cat5 = sum(1 for r in results_no_cat5 if r['correct'])
             f1_no_cat5 = sum(r['metrics']['f1'] for r in results_no_cat5 if r.get('metrics')) / total_no_cat5 * 100
             bleu1_no_cat5 = sum(r['metrics']['bleu1'] for r in results_no_cat5 if r.get('metrics')) / total_no_cat5 * 100
-            llm_no_cat5 = sum(r['llm_judge_score'] for r in results_no_cat5 if r.get('llm_judge_score', 0) >= 0) / total_no_cat5 * 100
+            llm_no_cat5 = sum(r.get('llm_judge_score', -1.0) for r in results_no_cat5 if r.get('llm_judge_score', -1.0) >= 0) / total_no_cat5 * 100
         else:
             total_no_cat5 = correct_no_cat5 = f1_no_cat5 = bleu1_no_cat5 = llm_no_cat5 = 0
 
@@ -561,8 +565,8 @@ def main():
             if r.get('metrics'):
                 category_stats[cat]['f1'].append(r['metrics'].get('f1', 0))
                 category_stats[cat]['bleu1'].append(r['metrics'].get('bleu1', 0))
-            if r.get('llm_judge_score', 0) >= 0:
-                category_stats[cat]['llm'].append(r['llm_judge_score'])
+            if r.get('llm_judge_score', -1.0) >= 0:
+                category_stats[cat]['llm'].append(r.get('llm_judge_score', -1.0))
 
         # Print results for this sample
         print(f"\n{'='*70}")
@@ -651,6 +655,26 @@ def main():
             }, f, indent=2, default=str)
 
         print(f"Results saved to {output_file}")
+
+        wrong_or_error_results = [
+            r for r in results
+            if (not r.get('correct', False)) or ('error' in r) or str(r.get('predicted', '')).startswith("ERROR:")
+        ]
+
+        wrong_or_error_file = f"{results_dir}/wrong_or_error_sample{sample_id}{embedding_suffix}.json"
+        with open(wrong_or_error_file, 'w') as f:
+            json.dump({
+                'sample_id': sample_id,
+                'timestamp': datetime.now().isoformat(),
+                'embedding_model': args.embedding_model,
+                'llm_model': args.model,
+                'total_questions': total,
+                'wrong_or_error_count': len(wrong_or_error_results),
+                'wrong_or_error_rate': (len(wrong_or_error_results) / total * 100) if total > 0 else 0,
+                'results': wrong_or_error_results
+            }, f, indent=2, default=str)
+
+        print(f"Wrong/error results saved to {wrong_or_error_file}")
 
         # Store for aggregation
         all_sample_results.append({

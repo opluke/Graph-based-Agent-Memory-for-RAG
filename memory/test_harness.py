@@ -561,7 +561,12 @@ class TestHarness:
                     'expected': qa.final_answer,
                     'predicted': f"ERROR: {str(e)}",
                     'correct': False,
-                    'error': str(e)
+                    'error': str(e),
+                    'context_nodes': 0,
+                    'processing_time': time.time() - start_time,
+                    'metrics': None,
+                    'llm_judge_score': -1.0,
+                    'search_details': {}
                 }, False, None, 0.0
 
         # Parallel processing with ThreadPoolExecutor

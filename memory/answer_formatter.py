@@ -302,6 +302,9 @@ class AnswerFormatter:
         # Remove common prefixes
         answer = self._remove_prefixes(answer)
 
+        # Preserve numbered lists before generic sentence truncation can destroy them.
+        answer = self._flatten_numbered_list(answer)
+
         # Apply specific normalizations based on question type
         question_lower = question.lower()
 
@@ -333,8 +336,12 @@ class AnswerFormatter:
                     if match:
                         return self._general_normalization(match.group(1))
 
-                # If still too long, take first sentence/clause
-                if '.' in answer:
+                # If still too long, take first sentence/clause.
+                # Skip period-based truncation when the answer contains numbered items
+                # like "1. foo 2. bar", which would otherwise collapse to ": 1".
+                if re.search(r'(?:^|\s)\d+[.)]\s*\S', answer):
+                    pass
+                elif '.' in answer:
                     answer = answer.split('.')[0].strip()
                 elif ',' in answer:
                     answer = answer.split(',')[0].strip()
@@ -527,6 +534,50 @@ class AnswerFormatter:
             answer = answer[:-1]
 
         return answer
+
+    def _flatten_numbered_list(self, answer: str) -> str:
+        """
+        Convert numbered / bulleted lists into a comma-separated answer.
+
+        This prevents later sentence truncation from turning:
+        "Items include: 1. A 2. B"
+        into:
+        "Items include: 1"
+        """
+        import re
+
+        list_pattern = re.compile(r'(?:^|\n|\s)(\d+)[.)]\s+')
+        if not list_pattern.search(answer):
+            return answer
+
+        prefix_match = re.match(r'^(.*?)(?:(?:\s|^)\d+[.)]\s+)', answer, re.DOTALL)
+        prefix = ""
+        if prefix_match:
+            prefix = prefix_match.group(1).strip()
+
+        parts = re.split(r'(?:^|\n|\s)\d+[.)]\s+', answer)
+        items = []
+        for part in parts[1:]:
+            cleaned = re.split(r'(?:\n|\s)\d+[.)]\s+', part, maxsplit=1)[0].strip(" \n\t-;,:.")
+            if cleaned:
+                items.append(cleaned)
+
+        if not items:
+            return answer
+
+        flattened = ', '.join(items)
+
+        # If the prefix is just framing text, return the extracted items only.
+        if prefix:
+            lowered = prefix.lower()
+            framing_markers = [
+                'include', 'includes', 'following', 'are', 'is', 'goals',
+                'items', 'places', 'activities', 'problems'
+            ]
+            if any(marker in lowered for marker in framing_markers):
+                return flattened
+
+        return flattened
 
     def build_qa_prompt(self, context: str, question: str, use_enhanced: bool = True, category: int = None) -> str:
         """

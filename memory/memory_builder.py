@@ -1096,6 +1096,11 @@ class MemoryBuilder:
             index_data = {k: list(v) for k, v in self.node_index.items()}
             json.dump(index_data, f, indent=2)
 
+        # Save runtime statistics separately from the graph payload.
+        stats_path = self.cache_dir / "stats.json"
+        with open(stats_path, 'w') as f:
+            json.dump(self.trg.get_statistics(), f, indent=2, default=str)
+
         # Save episode information if using episodes
         if self.use_episodes:
             episode_path = self.cache_dir / "episodes.json"
@@ -1123,6 +1128,18 @@ class MemoryBuilder:
             with open(index_path, 'r') as f:
                 index_data = json.load(f)
                 self.node_index = {k: set(v) for k, v in index_data.items()}
+
+        stats_path = self.cache_dir / "stats.json"
+        if stats_path.exists():
+            with open(stats_path, 'r') as f:
+                loaded_stats = json.load(f)
+            self.trg.stats.update({
+                k: v for k, v in loaded_stats.items()
+                if k in self.trg.stats
+            })
+        else:
+            # Older caches do not persist stats; recover the headline count from the graph.
+            self.trg.stats['links_created'] = len(self.trg.graph_db.links)
 
         episode_path = self.cache_dir / "episodes.json"
         if episode_path.exists():

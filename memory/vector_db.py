@@ -17,6 +17,10 @@ from pathlib import Path
 import logging
 from datetime import datetime
 
+from utils.cache_setup import configure_repo_cache
+
+configure_repo_cache()
+
 logger = logging.getLogger(__name__)
 
 try:

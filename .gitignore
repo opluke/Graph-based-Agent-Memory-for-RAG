@@ -26,6 +26,7 @@ longmem_*_cache/
 
 # Results and logs
 results/
+results_gpt_4o_mini/
 *.log
 fixed_results_*.json
 rescored_results_*.json
