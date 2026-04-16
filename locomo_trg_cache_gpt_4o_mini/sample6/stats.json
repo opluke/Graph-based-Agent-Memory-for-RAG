@@ -1,0 +1,18 @@
+{
+  "events_added": 689,
+  "queries_processed": 0,
+  "links_created": 0,
+  "causal_inferences": 0,
+  "total_nodes": 720,
+  "total_links": 17785,
+  "total_vectors": 720,
+  "node_types": {
+    "SESSION": 31,
+    "EVENT": 689
+  },
+  "link_types": {
+    "TEMPORAL": 6182,
+    "SEMANTIC": 10691,
+    "CAUSAL": 912
+  }
+}
