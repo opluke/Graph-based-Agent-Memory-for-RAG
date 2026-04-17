@@ -541,6 +541,9 @@ class MemoryBuilder:
         created = 0
 
         for i in range(len(nodes) - 1):
+            if not self._same_session_nodes(nodes[i], nodes[i + 1]):
+                continue
+
             link = Link(
                 source_node_id=nodes[i],
                 target_node_id=nodes[i + 1],
@@ -598,6 +601,8 @@ class MemoryBuilder:
                 target_node = self.trg.graph_db.get_node(target_id)
                 if not target_node:
                     continue
+                if not self._same_session_nodes(node_id, target_id):
+                    continue
 
                 # Calculate distance-based weight (closer = stronger)
                 distance = abs(i - j)
@@ -649,6 +654,9 @@ class MemoryBuilder:
 
             for sim_id, similarity, _ in similar_ids:
                 if sim_id != node_id and similarity > 0.5:
+                    if not self._same_session_nodes(node_id, sim_id):
+                        continue
+
                     target_node = self.trg.graph_db.get_node(sim_id)
                     if target_node:
                         link = Link(
@@ -674,6 +682,9 @@ class MemoryBuilder:
         if self.use_episodes:
             # Episode mode: link between episodes with different participants
             for i in range(len(nodes) - 1):
+                if not self._same_session_nodes(nodes[i], nodes[i + 1]):
+                    continue
+
                 curr_node = self.trg.graph_db.get_node(nodes[i])
                 next_node = self.trg.graph_db.get_node(nodes[i + 1])
 
@@ -697,6 +708,9 @@ class MemoryBuilder:
         else:
             # Turn mode: link between different speakers
             for i in range(len(nodes) - 1):
+                if not self._same_session_nodes(nodes[i], nodes[i + 1]):
+                    continue
+
                 curr = self.trg.graph_db.get_node(nodes[i])
                 next_node = self.trg.graph_db.get_node(nodes[i + 1])
 
@@ -720,7 +734,7 @@ class MemoryBuilder:
         return created
 
     def create_entity_links(self, nodes: List[str]) -> int:
-        """Create links between nodes mentioning same entities (for multi-hop)."""
+        """Create explicit ENTITY links between nodes mentioning the same entities."""
         from collections import defaultdict
         entity_index = defaultdict(list)
         created = 0
@@ -742,6 +756,7 @@ class MemoryBuilder:
                         for link in existing_links.values():
                             if (link.source_node_id == node_list[i] and
                                 link.target_node_id == node_list[j] and
+                                link.link_type == LinkType.ENTITY and
                                 link.properties.get('sub_type') == 'SAME_ENTITY'):
                                 duplicate = True
                                 break
@@ -750,7 +765,7 @@ class MemoryBuilder:
                             link = Link(
                                 source_node_id=node_list[i],
                                 target_node_id=node_list[j],
-                                link_type=LinkType.SEMANTIC,
+                                link_type=LinkType.ENTITY,
                                 properties={
                                     'sub_type': 'SAME_ENTITY',
                                     'entity': entity,
@@ -773,6 +788,9 @@ class MemoryBuilder:
 
             # Look ahead up to 10 nodes
             for j in range(i + 1, min(i + 10, len(nodes))):
+                if not self._same_session_nodes(nodes[i], nodes[j]):
+                    continue
+
                 next_node = self.trg.graph_db.get_node(nodes[j])
                 if not next_node or not hasattr(next_node, 'timestamp') or not next_node.timestamp:
                     continue
@@ -807,6 +825,9 @@ class MemoryBuilder:
                               'any', 'got', 'have you', 'did you', 'do you']
 
         for i in range(len(nodes) - 1):
+            if not self._same_session_nodes(nodes[i], nodes[i + 1]):
+                continue
+
             curr = self.trg.graph_db.get_node(nodes[i])
             next_node = self.trg.graph_db.get_node(nodes[i + 1])
 
@@ -845,6 +866,31 @@ class MemoryBuilder:
                     created += 1
 
         return created
+
+    def _get_node_session_id(self, node_id: str) -> Optional[str]:
+        """Resolve the session id for an event/episode node from its metadata or builder map."""
+        node = self.trg.graph_db.get_node(node_id)
+        if not node:
+            return None
+
+        if hasattr(node, 'attributes'):
+            session_id = node.attributes.get('session_id')
+            if session_id:
+                return session_id
+
+        for session_id, event_ids in self.session_event_map.items():
+            if node_id in event_ids:
+                return session_id
+
+        return None
+
+    def _same_session_nodes(self, source_node_id: str, target_node_id: str) -> bool:
+        """Return True only when both nodes belong to the same session."""
+        source_session_id = self._get_node_session_id(source_node_id)
+        target_session_id = self._get_node_session_id(target_node_id)
+        if not source_session_id or not target_session_id:
+            return False
+        return source_session_id == target_session_id
 
     def create_episode_event_links(self, episode_id: str, event_ids: List[str]) -> int:
         """Create CONTAINS links between Episode and its Event nodes."""

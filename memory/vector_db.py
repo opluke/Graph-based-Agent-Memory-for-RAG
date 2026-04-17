@@ -347,11 +347,6 @@ class FAISSVectorDB(VectorDBInterface):
         if not save_path:
             raise ValueError("No save path provided")
 
-        save_dir = Path(save_path)
-        save_dir.mkdir(parents=True, exist_ok=True)
-
-        faiss.write_index(self.index, str(save_dir / "index.faiss"))
-
         metadata = {
             "entries": {vid: e.to_dict() for vid, e in self.entries.items()},
             "id_to_index": self.id_to_index,
@@ -359,6 +354,18 @@ class FAISSVectorDB(VectorDBInterface):
             "next_index": self.next_index,
             "dimension": self.dimension
         }
+
+        save_target = Path(save_path)
+        if save_target.exists() and save_target.is_file():
+            # Backward-compatible single-file format for older cache layouts.
+            with open(save_target, 'w') as f:
+                json.dump(metadata, f, indent=2, default=str)
+            return
+
+        save_dir = save_target
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+        faiss.write_index(self.index, str(save_dir / "index.faiss"))
 
         with open(save_dir / "metadata.json", 'w') as f:
             json.dump(metadata, f, indent=2, default=str)
@@ -369,7 +376,24 @@ class FAISSVectorDB(VectorDBInterface):
         if not load_path:
             raise ValueError("No load path provided")
 
-        load_dir = Path(load_path)
+        load_target = Path(load_path)
+
+        if load_target.exists() and load_target.is_file():
+            with open(load_target, 'r') as f:
+                metadata = json.load(f)
+
+            self.entries = {
+                vid: VectorEntry.from_dict(e)
+                for vid, e in metadata["entries"].items()
+            }
+            self.id_to_index = metadata.get("id_to_index", {})
+            self.index_to_id = {int(k): v for k, v in metadata.get("index_to_id", {}).items()}
+            self.next_index = metadata.get("next_index", len(self.entries))
+            self.dimension = metadata["dimension"]
+            self._rebuild_index()
+            return
+
+        load_dir = load_target
 
         # Load FAISS index
         index_path = load_dir / "index.faiss"
